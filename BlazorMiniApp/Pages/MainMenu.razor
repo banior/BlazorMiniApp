@@ -1,0 +1,63 @@
+﻿@page "/"
+@inject NavigationManager NavigationManager
+
+@if (NavigationManager.Uri.EndsWith("/"))
+{
+    <div class="menu-container">
+        <h1 class="menu-title">Шпион</h1>
+
+        <div class="menu-section">
+            <button class="menu-button" title="Room code button" @onclick="GetRoomCode">Создать игру</button>
+            <div class="room-code" title="Game Room Code">@roomCode</div>
+        </div>
+
+        <div class="menu-section">
+            <label class="menu-label" for="join-input">Присоединиться к игре</label>
+            <input class="menu-input" id="join-input" @bind-value="@inputCode" placeholder="Введите код комнаты" />
+            <button class="menu-button" title="Submit code button" @onclick="SubmitCode">Присоединиться</button>
+        </div>
+
+        @if (isStartGameVisible && isYourGame)
+        {
+            <div class="start-game-container">
+                <NavLink href="game-table">
+                    <button class="start-game" title="Start your game" @onclick="StartGame">Перейти к столу</button>
+                </NavLink>
+            </div>
+        }
+    </div>
+}
+
+
+@code
+{
+    private string roomCode;       
+    private string inputCode = ""; 
+    private bool isStartGameVisible = false;
+    private bool isYourGame = true;
+    
+    private void GetRoomCode()
+    {
+        isYourGame = true;
+        roomCode = "SPY-123"; 
+        isStartGameVisible = true; 
+    }
+    
+    private void SubmitCode()
+    {
+        isYourGame = false;
+        if (inputCode.Trim().ToUpper() == roomCode.ToUpper())
+        {
+            Console.WriteLine("Код подтвержден! Успешное подключение.");
+        }
+        else
+        {
+            Console.WriteLine("Неверный код комнаты.");
+        }
+    }
+    
+    private void StartGame()
+    {
+        NavigationManager.NavigateTo("/game-table"); 
+    }
+}
