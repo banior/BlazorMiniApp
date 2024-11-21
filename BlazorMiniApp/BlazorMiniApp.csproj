@@ -15,4 +15,8 @@
       <Content Remove="Pages\Index.razor" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Remove="Pages\script.js" />
+    </ItemGroup>
+
 </Project>

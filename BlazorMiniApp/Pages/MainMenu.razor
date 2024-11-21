@@ -1,11 +1,17 @@
 ﻿@page "/"
-@inject NavigationManager NavigationManager
-
-@if (NavigationManager.Uri.EndsWith("/"))
-{
-    <div class="menu-container">
+<div class="board">
+    <div class="table-container">
+        <div class="infinite-table" id="infiniteTable">
+            <!-- Игровые элементы -->
+            <div class="game-item" style="left: 200px; top: 150px;">🔵</div>
+            <div class="game-item" style="left: 300px; top: 400px;">🔺</div>
+        </div>
+    </div>
+    
+    <button id="toggle-menu" class="menu-button toggle-button" @onclick="ToggleMenu">☰</button>
+    <div class="menu-container @(isMenuVisible ? "" : "hidden")">
         <h1 class="menu-title">Шпион</h1>
-
+        <button class="menu-button close-menu-button" @onclick=ToggleMenu>❌</button>
         <div class="menu-section">
             <button class="menu-button" title="Room code button" @onclick="GetRoomCode">Создать игру</button>
             <div class="room-code" title="Game Room Code">@roomCode</div>
@@ -13,22 +19,85 @@
 
         <div class="menu-section">
             <label class="menu-label" for="join-input">Присоединиться к игре</label>
-            <input class="menu-input" id="join-input" @bind-value="@inputCode" placeholder="Введите код комнаты" />
+            <input class="menu-input" id="join-input" @bind-value="@inputCode" placeholder="Введите код комнаты"/>
             <button class="menu-button" title="Submit code button" @onclick="SubmitCode">Присоединиться</button>
         </div>
 
         @if (isStartGameVisible && isYourGame)
         {
             <div class="start-game-container">
-                <NavLink href="game-table">
-                    <button class="start-game" title="Start your game" @onclick="StartGame">Перейти к столу</button>
-                </NavLink>
+                <button class="start-game" title="Start your game" @onclick="ToggleMenu">Перейти к столу</button>
             </div>
         }
     </div>
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            const table = document.getElementById("infiniteTable");
+
+            let isDragging = false;
+            let startX, startY;
+            let offsetX = 0, offsetY = 0;
+
+            table.addEventListener("mousedown", startDrag);
+            table.addEventListener("mousemove", drag);
+            table.addEventListener("mouseup", endDrag);
+            table.addEventListener("mouseleave", endDrag);
+
+            // Для тач-событий
+            table.addEventListener("touchstart", startDrag, { passive: false });
+            table.addEventListener("touchmove", drag, { passive: false });
+            table.addEventListener("touchend", endDrag);
+
+            function startDrag(e) {
+                isDragging = true;
+
+                if (e.type === "mousedown") {
+                    startX = e.clientX - offsetX;
+                    startY = e.clientY - offsetY;
+                } else if (e.type === "touchstart") {
+                    startX = e.touches[0].clientX - offsetX;
+                    startY = e.touches[0].clientY - offsetY;
+                }
+            }
+
+            function drag(e) {
+                if (!isDragging) return;
+
+                e.preventDefault(); // Отключить стандартное поведение
+
+                let currentX, currentY;
+
+                if (e.type === "mousemove") {
+                    currentX = e.clientX;
+                    currentY = e.clientY;
+                } else if (e.type === "touchmove") {
+                    currentX = e.touches[0].clientX;
+                    currentY = e.touches[0].clientY;
+                }
+
+                offsetX = currentX - startX;
+                offsetY = currentY - startY;
+
+                table.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+            }
+
+            function endDrag() {
+                isDragging = false;
+            }
+        });
+    </script>
+</div>
+
+
+@code
+{
+    private bool isMenuVisible = true;
+
+    private void ToggleMenu()
+    {
+        isMenuVisible = !isMenuVisible;
+    }
 }
-
-
 @code
 {
     private string roomCode;       
@@ -46,18 +115,14 @@
     private void SubmitCode()
     {
         isYourGame = false;
-        if (inputCode.Trim().ToUpper() == roomCode.ToUpper())
-        {
-            Console.WriteLine("Код подтвержден! Успешное подключение.");
-        }
-        else
-        {
-            Console.WriteLine("Неверный код комнаты.");
-        }
-    }
-    
-    private void StartGame()
-    {
-        NavigationManager.NavigateTo("/game-table"); 
+        ToggleMenu();
+        // if (inputCode.Trim().ToUpper() == roomCode.ToUpper())
+        // {
+        //     Console.WriteLine("Код подтвержден! Успешное подключение.");
+        // }
+        // else
+        // {
+        //     Console.WriteLine("Неверный код комнаты.");
+        // }
     }
 }
